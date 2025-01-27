@@ -1,6 +1,8 @@
 # RTGP_Project
  Progetto svolto per il corso di "Real Time Graphics Programming" in UNIMI
 
+Video Youtube che illustra il funzionamento: https://youtu.be/iY_sV6nLEzA
+
  CONSEGNA:
 
 1. Ambiente con diverse stanze, ognuna con oggetti aventi materiali basati su shader con diversi tipi di rumore (perlin, cellular, ecc) con diversi parametri.
