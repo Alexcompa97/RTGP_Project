@@ -148,20 +148,27 @@ void processInput(GLFWwindow* window) {
         glfwSetWindowShouldClose(window, true);
 
     float currentSpeed = movementSpeed * deltaTime;
-    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-        cameraPos += currentSpeed * cameraFront;
-    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-        cameraPos -= currentSpeed * cameraFront;
-    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-        cameraPos -= glm::normalize(glm::cross(cameraFront, cameraUp)) * currentSpeed;
-    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-        cameraPos += glm::normalize(glm::cross(cameraFront, cameraUp)) * currentSpeed;
+    if (mouseCaptured) { 
+        if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+            cameraPos += currentSpeed * cameraFront;
+        if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+            cameraPos -= currentSpeed * cameraFront;
+        if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+            cameraPos -= glm::normalize(glm::cross(cameraFront, cameraUp)) * currentSpeed;
+        if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+            cameraPos += glm::normalize(glm::cross(cameraFront, cameraUp)) * currentSpeed;
+    }
 
     if (glfwGetKey(window, GLFW_KEY_TAB) == GLFW_PRESS) {
         if (firstPress) {
             mouseCaptured = !mouseCaptured;
             if (mouseCaptured) {
                 glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+                double xpos, ypos;
+                glfwGetCursorPos(window, &xpos, &ypos);
+                lastX = xpos;
+                lastY = ypos;
+                firstMouse = false;
             } else {
                 glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
             }
