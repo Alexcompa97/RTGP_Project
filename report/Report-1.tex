@@ -1,0 +1,93 @@
+\documentclass[12pt]{article}
+
+% Packages
+\usepackage{graphicx} % For including images
+\usepackage{geometry} % For adjusting page margins
+\usepackage{titlesec} % For customizing section titles
+\usepackage{fancyhdr} % For customizing headers and footers
+\usepackage{hyperref} % For adding hyperlinks
+
+% Page setup
+\geometry{a4paper, margin=1in}
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\leftmark}
+\fancyhead[R]{RTGP Project Report}
+\fancyfoot[C]{\thepage}
+
+% Section title formatting
+\titleformat{\section}
+{\normalfont\Large\bfseries}{\thesection}{1em}{}
+\titleformat{\subsection}
+{\normalfont\large\bfseries}{\thesubsection}{1em}{}
+
+% Begin document
+\begin{document}
+
+% Title
+\begin{titlepage}
+    \centering
+    \vspace*{2cm}
+    {\Huge\bfseries Real Time Graphics Programming Project Report\par}
+    \vspace{1.5cm}
+    {\Large\itshape Compagnoni Alessandro\par}
+    \vspace{0.5cm}
+   {\large UNIMI A.A. 2023/2024\par}
+    \vfill
+    \includegraphics[width=0.8\textwidth]{Images/logoUnimi.png} % Replace with your logo/image
+    \vfill
+\end{titlepage}
+
+% Table of Contents
+\tableofcontents
+\newpage
+
+% Sections
+\section{Overview}
+\label{sec:overview}
+
+This project implements a 3D environment using OpenGL, allowing users to navigate within 3 square rooms connected by corridors. Inside the rooms various 3D objects are placed, each rendered with a different material based on shaders that showcase various types of noise with different parameters, all freely adjustable by the user thanks to the dedicated UI.
+
+\section{Project Details and Design Choices}
+\label{sec:project_details}
+\subsection{Technologies}
+The following technologies were selected to ensure efficient rendering, cross-platform compatibility, and streamlined development for the project:
+
+\begin{itemize}
+\item OpenGL Modern Pipeline (Version 3.3+):
+\newline
+OpenGL’s modern shader-based architecture was chosen to leverage direct control over vertex and fragment processing. By utilizing GLSL shaders, the pipeline enables complex procedural effects while maintaining high performance.
+
+\item GLFW (Graphics Library Framework):
+\newline
+GLFW provides robust window management and input handling, ensuring consistent behavior across operating systems, also its event-driven architecture simplifies interaction with user inputs.
+
+\item GLM (OpenGL Mathematics):
+\newline
+GLM mathematics library is optimized for graphics programming. It offers essential data types (e.g., vectors, matrices) and prebuilt functions for common transformations (e.g., translation, projection).
+\end{itemize}
+
+\subsection{Architecture}
+
+\newpage
+
+\section{Algorithms and Techniques}
+\label{sec:algorithms}
+
+\newpage
+
+\section{Implementation Details}
+\label{sec:implementation}
+
+\newpage
+
+\section{Performance Evaluation}
+\label{sec:performance}
+
+\newpage
+
+\section{Conclusion}
+\label{sec:conclusion}
+
+% End document
+\end{document}
