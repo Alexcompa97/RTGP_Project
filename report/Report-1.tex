@@ -177,11 +177,48 @@ This section will explain in detail all types of noise utilized and where the us
 
     The final turbulence value is normalized by dividing by the maximum possible value, ensuring it remains within a usable range.
 
+    \item \textbf{Perlin Noise on Normal Map}:
+    \newline
+    This technique is often used to simulate surface details without the need for additional geometry, enhancing the realism of the rendered object.
+    The implementation typically involves three steps:
+    \begin {enumerate}
+        \item \textbf{Noise Generation}:
+        \newline
+        Perlin noise is generated based on the fragment position. This noise is used to create small variations in the surface normals.
+
+        \item \textbf{Normal Perturbation}:
+        \newline
+        The generated noise is used to perturb the original normals. This involves adjusting the normal vectors based on the noise values, simulating a bumpy surface.
+
+        \item \textbf{Lighting Calculations}:
+        \newline
+        The perturbed normals are then used in the lighting calculations, affecting the diffuse and specular components of the lighting model.   
+    \end{enumerate}
+
+    \item \textbf{Perlin Noise on Transparency}:
+    \newline
+    This technique allows for the simulation of materials with varying opacity, such as frosted glass or organic surfaces.
+    The implementation typically involves three steps:
+    \begin {enumerate}
+        \item \textbf{Noise Generation}:
+        \newline
+        Perlin noise is generated based on the fragment position. This noise value is used to determine the transparency level of each fragment.
+
+        \item \textbf{Alpha Calculation}:
+        \newline
+        The noise value is mapped to an alpha value, which controls the transparency of the fragment. This mapping is done using a linear interpolation between minimum and maximum alpha values.
+
+        \item \textbf{Fragment Color Output}:
+        \newline
+        The calculated alpha value is combined with the base color and lighting calculations to produce the final fragment color, including its transparency.
+    \end{enumerate}
+
     \item \textbf{Simplex Noise}:
     \newline
     Simplex noise is a type of gradient noise that improves upon classic Perlin noise by reducing directional artifacts and computational complexity. 
     It is particularly useful for generating smooth, organic textures in graphics applications.
     The implementation typically involves five steps:
+
     \begin {enumerate}  
         \item \textbf{Coordinate Skewing}:
         \newline
@@ -236,7 +273,7 @@ This section will explain in detail all types of noise utilized and where the us
 
     \begin{figure}[H]
         \centering
-        \includegraphics[width=0.8\textwidth]{Images/multifractal.png}
+        \includegraphics[width=0.7\textwidth]{Images/multifractal.png}
         \caption{Example of multifractal noise}
     \end{figure}   
 
@@ -268,7 +305,7 @@ This section will explain in detail all types of noise utilized and where the us
 
     \begin{figure}[H]
         \centering
-        \includegraphics[width=0.8\textwidth]{Images/cellular.png}
+        \includegraphics[width=0.7\textwidth]{Images/cellular.png}
         \caption{Example of cellular noise}
     \end{figure} 
     
@@ -278,7 +315,296 @@ This section will explain in detail all types of noise utilized and where the us
 
 \section{Implementation Details}
 \label{sec:implementation}
+In this section are reported all the most relevant sections of the code, with particular focus on the noise generation and the shaders.
+\newline
+\subsection{Noise Generation}
+\label{sec:noiseGeneration}
 
+\begin{enumerate}
+    \item \textbf{Perlin Noise and variations}:
+    \begin{itemize}
+        \item \textbf{fragment\_sphere1.glsl}:
+        \newline
+        This shader is used to render the sphere in the first room, it uses simple Perlin noise to modify the diffusive color of the sphere.
+
+        \begin{figure}[H]
+            \label{img:noiseFunction}
+            \centering
+            \includegraphics[width=1\textwidth]{Images/sphere1code.png}
+        \end{figure}
+
+        \begin{figure}[H]
+            \centering
+            \includegraphics[width=1\textwidth]{Images/sphere1code2.png}
+            \caption{snippet of code used to implement Perlin noise}
+        \end{figure}
+
+        \textbf{Explanation of the code}:
+
+        \begin{itemize}
+            \item \textbf{mod289 and permute}:
+            \newline
+            These functions are used to wrap indices and generate pseudo-random permutations, ensuring that the noise pattern repeats seamlessly across the grid.
+
+            \item \textbf{taylorInvSqrt}:
+            \newline
+            This function is used to normalize gradient vectors, ensuring they have unit length, which is crucial for consistent noise values.
+
+            \item \textbf{fade}:
+            \newline
+            This function is used to interpolate between the noise values at the corners of the grid.        
+        \end{itemize}
+
+        The "noise" function proceeds to generate the Perlin noise following the procedure detailed in the section \hyperref[sec:algorithms]{algorithms}.
+    \newpage
+        
+        \item \textbf{fragment\_cube1.glsl}:
+        \newline
+        This shader is used to render the cube in the first room, it uses Perlin noise with multiple octaves to modify the diffusive color of the cube.
+
+        \begin{figure}[H]
+            \centering
+            \includegraphics[width=0.8\textwidth]{Images/cube1code.png}
+            \caption{snippet of code used to implement Perlin noise with multiple octaves}
+        \end{figure}
+
+        \textbf{Explanation of the code}:
+
+        \begin{itemize}
+            \item The for loop runs for a specified number of octaves, in this case 4.
+            \item For each octave, the noise function is called with the position scaled by the current frequency.
+            \item After each octave, the amplitude is halved, and the frequency is doubled.
+            \item The final noise value is normalized by dividing by the sum of amplitudes to ensure it remains within a usable range.
+        \end{itemize}
+
+        A "noise" function identical to the one seen \hyperref[img:noiseFunction]{before} proceeds to generate the Perlin noise following the procedure detailed in the section \hyperref[sec:algorithms]{algorithms}.
+
+    \newpage
+
+        \item \textbf{fragment\_pyramid1.glsl}:
+        \newline
+        This shader is used to render the pyramid in the first room, it uses Perlin noise with turbulence to modify the diffusive color of the pyramid.
+
+        \begin{figure}[H]
+            \centering
+            \includegraphics[width=0.8\textwidth]{Images/pyramid1code.png}
+            \caption{snippet of code used to implement Perlin noise with turbulence}
+        \end{figure}
+
+        \textbf{Explanation of the code}:     
+
+        \begin{itemize}
+            \item The for loop runs for a specified number of octaves, in this case 4.
+            \item For each octave, the noise function is called with the position scaled by the current frequency. The absolute value of the noise is taken to create sharp features.
+            \item After each octave, the amplitude is halved, and the frequency is doubled.
+            \item The final turbulence value is normalized by dividing by the sum of amplitudes, ensuring it remains within a consistent range.
+        \end{itemize}
+
+        A "noise" function identical to the one seen \hyperref[img:noiseFunction]{before} proceeds to generate the Perlin noise following the procedure detailed in the section \hyperref[sec:algorithms]{algorithms}.
+    \end{itemize}
+
+
+    \newpage
+
+    \item \textbf{Simplex Noise (fragment\_cube2.glsl)}:
+    \newline
+    This shader is used to render the cube in the second room, it uses Simplex noise to modify the diffusive color of the cube.
+
+    \begin{figure}[H]
+        \label{img:snoiseFunction}
+        \centering
+        \includegraphics[width=0.8\textwidth]{Images/cube2code.png}
+    \end{figure}
+
+    \begin{figure}[H]
+        \centering
+        \includegraphics[width=0.9\textwidth]{Images/cube2code2.png}
+        \caption{snippet of code used to implement Simplex noise}
+    \end{figure}
+
+    \textbf{Explanation of the code}:
+    \begin {itemize}
+        \item The input vector v is skewed to determine the simplex cell it falls into, the corners of the simplex are then calculated.
+        \item Gradients are calculated at each corner of the simplex, these gradients are used to compute the influence of each corner on the final noise value.
+        \item The final noise value is normalized to ensure it fits within a usable range.
+        \item The noise values at the corners are interpolated using a smooth function to ensure continuous transitions.    
+    \end{itemize}
+
+    \newpage
+
+    \item \textbf{Multifractal Noise (fragment\_sphere2.glsl)}:
+    \newline
+    This shader is used to render the sphere in the second room, it uses Multifractal noise to modify the diffusive color of the sphere.
+
+    \begin{figure}[H]
+        \centering
+        \includegraphics[width=0.8\textwidth]{Images/sphere2code.png}
+        \caption{snippet of code used to implement Multifractal noise}
+    \end{figure}
+
+    \textbf{Explanation of the code}:
+    \begin {itemize}
+        \item The function starts with an initial value of 1.0, and sets the initial frequency and amplitude.
+        \item The loop iterates over the specified number of octaves.
+        \item For each octave, the simplex noise function snoise is called with the position scaled by the current frequency. 
+            The result is adjusted by the current weight and added to the value.  
+        \item The frequency is multiplied by the lacunarity to increase the detail for the next octave. 
+            The weight is updated based on the current value and clamped to ensure it remains within a valid range.
+        \item The final multifractal noise value is returned, representing the combined effect of all octaves.
+    \end{itemize}
+
+    A "snoise" function identical to the one seen \hyperref[img:snoiseFunction]{before} proceeds to generate the Simplex noise.
+
+    \newpage
+
+    \item \textbf{Cellular Noise (fragment\_pyramid2.glsl)}:
+    \newline
+    This shader is used to render the pyramid in the second room, it uses Cellular noise to modify the diffusive color of the pyramid.      
+    
+    \begin{figure}[H]
+        \centering
+        \includegraphics[width=0.9\textwidth]{Images/pyramid2code.png}
+    \end{figure}
+
+    \begin{figure}[H]
+        \centering
+        \includegraphics[width=0.9\textwidth]{Images/pyramid2code2.png}
+        \caption{snippet of code used to implement Cellular noise}
+    \end{figure}
+    
 \newpage
 
+    \textbf{Explanation of the code}:
+    \begin {itemize}
+
+        \item \textbf{hash3}:
+        \newline
+        The hash3 function generates pseudo-random feature points within each grid cell. It uses a combination of dot products and trigonometric functions to ensure randomness.
+
+        \item \textbf{cellular}:
+        \newline
+        The input position p is split into its integer (i\_p) and fractional (f\_p) parts. The integer part identifies the grid cell, while the fractional part is used to calculate distances within the cell.
+        The shader iterates over neighboring cells to find the nearest feature point: the distance to each feature point is calculated, and the minimum distance is stored.
+        The feature points are animated by applying a sine function, which can create dynamic patterns over time.
+
+        \item \textbf{enhancedCellular}:
+        \newline
+        The function generates two layers of cellular noise at different scales, this layering adds complexity and detail to the texture. 
+        The two noise layers are mixed together using a specified intensity, this allows for blending between the different scales of noise, creating a more intricate pattern.
+    \end{itemize}
+
+\newpage
+    
+    \item \textbf{Perlin Noise on Normal Map (fragment\_sphere3.glsl)}:
+    \newline
+    This shader is used to render the sphere in the third room, it uses Perlin noise to modify the normal map of the sphere.
+
+    \begin{figure}[H]
+        \centering
+        \includegraphics[width=0.8\textwidth]{Images/sphere3code.png}
+        \caption{snippet of code used to implement Perlin noise on normal map}
+    \end{figure}
+
+    \textbf{Explanation of the code}:
+    \begin {itemize}
+        \item \textbf{Noise Generation}:
+        \newline
+        The position FragPos is scaled by noiseScale to control the frequency of the noise. The noise function is called to generate noise values at the current position and slightly offset positions (nx and ny).
+
+        \item \textbf{Normal Perturbation}:
+        \newline
+        The difference between the noise values (n - nx and n - ny) is used to create a perturbation vector. This vector is scaled by normalStrength to control the intensity of the normal perturbation.
+        The original normal Normal is adjusted by adding the perturbation vector, and the result is normalized to ensure it remains a unit vector.
+
+        \item \textbf{Lighting Calculations}:
+        \newline
+        The perturbed normal norm is used in the lighting calculations, this affects the diffuse and specular components, creating the appearance of a textured surface.
+        The diffuse component is calculated using the dot product of the perturbed normal and the light direction.
+        The specular component is calculated using the reflection of the light direction around the perturbed normal, with the glossiness controlling the sharpness of the specular highlight.
+    \end{itemize}
+    
+    A "noise" function identical to the one seen \hyperref[img:noiseFunction]{before} proceeds to generate the Perlin noise following the procedure detailed in the section \hyperref[sec:algorithms]{algorithms}.
+
+    \newpage
+
+    \item \textbf{Perlin Noise on Transparency (fragment\_cube3.glsl)}:
+    \newline
+    This shader is used to render the cube in the third room, it uses Perlin noise to modify the transparency of the cube.
+
+    \begin{figure}[H]
+        \centering
+        \includegraphics[width=0.8\textwidth]{Images/cube3code.png}
+        \caption{snippet of code used to implement Perlin noise on transparency}
+    \end{figure}
+
+    \textbf{Explanation of the code}:
+    \begin {itemize}
+        \item \textbf{Noise Generation}:
+        \newline
+        The position FragPos is scaled by noiseScale to control the frequency of the noise. The noise function is called to generate a noise value, which is normalized to the range [0, 1] by multiplying by 0.5 and adding 0.5.
+
+        \item \textbf{Alpha Calculation}:
+        \newline
+        The mix function is used to interpolate between minAlpha and maxAlpha based on the noise value. 
+        This determines the transparency level of the fragment, with higher noise values resulting in higher transparency (or vice versa, depending on the values of minAlpha and maxAlpha).
+
+        \item \textbf{Lighting Calculations}:
+        \newline
+        The base color and lighting calculations (ambient, diffuse, and specular) are performed as usual, using the normalized normal vector and light direction.
+
+        \item \textbf{Fragment Color Output}:
+        \newline
+        The final fragment color is constructed using the calculated lighting components and the interpolated alpha value. 
+        The FragColor output includes the RGB color and the alpha transparency.
+    \end{itemize}
+
+    A "noise" function identical to the one seen \hyperref[img:noiseFunction]{before} proceeds to generate the Perlin noise following the procedure detailed in the section \hyperref[sec:algorithms]{algorithms}.
+
+\subsection{Main code}
+This section is a short summary that explains how the code in the main file Rooms.cpp is structured:
+
+\begin{itemize}
+    \item \textbf{Global Variables}:
+    \newline
+    Camera and movement variables are defined to control the user's view and navigation through the 3D space.
+    Shader program IDs are stored for different objects (cubes, spheres, pyramids) in each room.
+
+    \item \textbf{Noise Parameters}:
+    \newline
+    Parameters for different noise types (Perlin, Simplex, Multifractal, Cellular) are defined for each room.
+
+    \item \textbf{Shader Setup}:
+    \newline
+    A function readShaderFile is provided to read shader source code from files, which is then used to compile and link shader programs.
+
+    \item \textbf{Input Handling}:
+    \newline
+    Functions like "mouse\_callback" and "processInput" handle user input for camera movement and interaction, such as toggling mouse capture and moving the camera with keyboard keys.
+
+    \item \textbf{Object Setup and Rendering}:
+    \newline
+    Functions are defined to set up vertex data and buffers for different objects (cubes, spheres, pyramids), rooms and corridors. These functions also compile and link shaders for rendering.
+    Rendering functions use the shader programs to draw objects with the specified noise parameters and transformations.
+
+    \item \textbf{Cleanup}:
+    \newline
+    Cleanup functions are provided to delete OpenGL resources (VAOs, VBOs, EBOs, shader programs) when they are no longer needed.
+
+    \item \textbf{ImGui Rendering functions}:
+    \newline
+    The "renderNoiseControls" function is used to render the ImGui window, which contains the noise parameters for each room.
+
+    \item \textbf{Main Function}:
+    \newline
+    The main function initializes the application, creates a window, and enters the main loop, which continues until the window is closed, it also handles the loop, updating the view and projection matrices, and rendering the GUI and the 	    objects using the various functions described in details \hyperref[sec:noiseGeneration]{here} in each room.
+    In the end, it cleans up the resources calling the apposite functions and exits the program.
+\end{itemize}
+\end{enumerate}
+
+\section{Conclusions}
+\label{sec:conclusions}
+The project is a simple but effective way to show and understand how noise can be used to modify the appearance of objects in a 3D scene in a OpenGL context.
+It also showcases the various properties, advantages and disadvantages of the different noise types, and how they can be used to create different effects.
+\newline
+Compagnoni Alessandro, 2025
 \end{document}
